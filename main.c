@@ -12,7 +12,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "taint_flags.h"
+
+void usage() {
+	printf("taint-info - Kernel Taint Info\n");
+	printf("Copyright (C) 2018 Cynthia Revström <me@cynthia.re>\n");
+	printf("Usage:\n");
+	printf("  -h: this help\n");
+	printf("  -i <taint value>: show information based on \"taint\" value.\n");
+	printf("  -p: show information based on this computer's taint value.\n");
+}
 
 void check_taint_flag(int taintval, int flag, char* flag_name, char* msg) {
 	if(taintval & flag) {
@@ -20,34 +30,7 @@ void check_taint_flag(int taintval, int flag, char* flag_name, char* msg) {
 	}
 }
 
-int main(int argc, char** argv) {
-	// Help with -h or --help
-	if (argc > 2) {
-		if(argv[1] == "-h" || argv[1] == "--help") {
-			printf("taint-info - Linux Kernel Taint Info\n");
-			printf("Copyright (C) 2018 Cynthia Revström <me@cynthia.re>\n");
-			printf("just run %s :)", argv[0]);
-		}
-	}
-
-	char buf[2048];
-	FILE* fh;
-	size_t size;
-
-	// Read /proc/sys/kernel/tainted
-	fh = fopen("/proc/sys/kernel/tainted", "r");
-	size = fread(&buf, 1, sizeof(buf), fh);
-	fclose(fh);
-
-	buf[size] = '\0';
-
-	// Parse the string from tainted to an int
-	char* end;
-	long l = strtol(buf, &end, 10);
-	int taintval = (int) l;
-
-
-	// Check the taint
+void check_flags(int taintval) {
 	if(taintval != 0) {
 		printf("Kernel is tainted :(\n");
 		printf("Taint value: %d\n", taintval);
@@ -75,6 +58,71 @@ int main(int argc, char** argv) {
 		check_taint_flag(taintval, TAINT_STRUCT_RANDOM, "STRUCT_RANDOM", "The kernel was built with the struct randomization plugin");
 	} else {
 		printf("Kernel is not tainted :)");
+	}
+}
+
+void check_proc() {
+	char buf[2048];
+	FILE* fh;
+	size_t size;
+
+	// Read /proc/sys/kernel/tainted
+	fh = fopen("/proc/sys/kernel/tainted", "r");
+	size = fread(&buf, 1, sizeof(buf), fh);
+	fclose(fh);
+
+	buf[size] = '\0';
+
+	// Parse the string from tainted to an int
+	char* end;
+	long l = strtol(buf, &end, 10);
+	int taintval = (int) l;
+
+
+	// Check the taint
+	check_flags(taintval);
+}
+
+void check_flags_cli(char* flagstr) {
+	// Parse the string to an int
+	char* end;
+	long l = strtol(flagstr, &end, 10);
+	int taintval = (int) l;
+
+
+	// Check the taint
+	check_flags(taintval);
+}
+
+int main(int argc, char** argv) {
+	char* flag_input;
+	int opt;
+	enum { INTEGER_FLAG_MODE, PROC_MODE, HELP_MODE } mode = HELP_MODE;
+
+	while ((opt = getopt(argc, argv, "i:hp")) != -1) {
+		switch(opt) {
+			case 'i':
+				mode = INTEGER_FLAG_MODE;
+				flag_input = optarg;
+				break;
+			case 'h':
+				mode = HELP_MODE;
+				break;
+			case 'p':
+				mode = PROC_MODE;
+				break;
+			default:
+				usage();
+				exit(EXIT_FAILURE);
+		}
+	}
+
+	if (mode == INTEGER_FLAG_MODE) {
+		check_flags_cli(flag_input);
+	} else if (mode == PROC_MODE) {
+		check_proc();
+	} else if (mode == HELP_MODE) {
+		usage();
 	}
 
 	return 0;
