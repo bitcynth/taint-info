@@ -57,7 +57,7 @@ void check_flags(int taintval) {
 		check_taint_flag(taintval, TAINT_AUX, "AUX", "Auxiliary taint, defined and used by distros");
 		check_taint_flag(taintval, TAINT_STRUCT_RANDOM, "STRUCT_RANDOM", "The kernel was built with the struct randomization plugin");
 	} else {
-		printf("Kernel is not tainted :)");
+		printf("Kernel is not tainted :)\n");
 	}
 }
 
@@ -68,6 +68,10 @@ void check_proc() {
 
 	// Read /proc/sys/kernel/tainted
 	fh = fopen("/proc/sys/kernel/tainted", "r");
+	if (fh == NULL) {
+		printf("No kernel taint file found :(\n");
+		exit(EXIT_FAILURE);
+	}
 	size = fread(&buf, 1, sizeof(buf), fh);
 	fclose(fh);
 
