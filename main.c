@@ -62,6 +62,7 @@ void check_flags(int taintval) {
 }
 
 void check_proc() {
+#ifndef _WIN32
 	char buf[2048];
 	FILE* fh;
 	size_t size;
@@ -85,6 +86,13 @@ void check_proc() {
 
 	// Check the taint
 	check_flags(taintval);
+#endif
+#ifdef _WIN32
+	printf("Kernel is tainted :(\n");
+	printf("Taint value: 133742069\n");
+	printf("Taint flags: \n");
+	printf("WINDOWS: You are running Windows, you fucking noob.\n");
+#endif
 }
 
 void check_flags_cli(char* flagstr) {
