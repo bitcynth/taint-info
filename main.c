@@ -17,7 +17,7 @@
 
 void usage() {
 	printf("taint-info - Kernel Taint Info\n");
-	printf("Copyright (C) 2018 Cynthia Revström <me@cynthia.re>\n");
+	printf("Copyright (C) 2018 Cynthia Revstrom <me@cynthia.re>\n");
 	printf("Usage:\n");
 	printf("  -h: this help\n");
 	printf("  -i <taint value>: show information based on \"taint\" value.\n");
